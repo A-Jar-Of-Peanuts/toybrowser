@@ -27,6 +27,9 @@ class Element: public NodeType {
         }
 };
 
+class Comment: public NodeType{
+};
+
 Node* text(vector<Node> children, string t) {
     Text tx(t);
     Node* nd = new Node(children, tx);
