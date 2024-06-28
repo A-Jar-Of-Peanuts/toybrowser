@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
-#include "nodestruct.h";
+#include "nodestruct.h"
 
 using namespace std;
 
@@ -15,6 +15,9 @@ class Text: public NodeType {
         Text(string t) {
             text = t;
         }
+        string print() override {
+            return text;
+        }
 };
 
 class Element: public NodeType {
@@ -24,6 +27,9 @@ class Element: public NodeType {
         Element(string tn, unordered_map<string, string> am) {
             tagname = tn;
             atmap = am;
+        }
+        string print() override {
+            return tagname;
         }
 };
 

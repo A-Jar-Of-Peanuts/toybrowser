@@ -6,7 +6,10 @@
 #include <string>
 #include <unordered_map>
 
-class NodeType{};
+class NodeType{
+    public:
+        virtual std::string print();
+};
 
 struct Node {
     std::vector<Node*> children;

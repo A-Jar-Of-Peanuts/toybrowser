@@ -5,7 +5,7 @@
 #include <vector>
 #include "nodestruct.h"
 
-Node* parse(string str);
+Node* parse(std::string str);
 
 class Parser {
     public:
