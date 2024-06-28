@@ -30,13 +30,13 @@ class Element: public NodeType {
 class Comment: public NodeType{
 };
 
-Node* text(vector<Node> children, string t) {
+Node* text(vector<Node*> children, string t) {
     Text tx(t);
     Node* nd = new Node(children, tx);
     return nd;
 }
 
-Node* element(vector<Node> children, string tn, unordered_map<string, string> am) {
+Node* element(vector<Node*> children, string tn, unordered_map<string, string> am) {
     Element elem(tn, am);
     Node* nd = new Node(children, elem);
     return nd;

@@ -1,10 +1,11 @@
 #ifndef HTMLPARSER_H   
 #define HTMLPARSER_H
 
-#include <vector>
-#include <iostream>
 #include <string>
-#include <unordered_map>
+#include <vector>
+#include "nodestruct.h"
+
+Node* parse(string str);
 
 class Parser {
     public:
@@ -14,6 +15,15 @@ class Parser {
         bool startsWith(char c);
         bool eof();
         char consumeChar();
+        std::string consumeWhile(bool (*func)(char c));
+        void consumeWhitespace();
+        std::string parseTagAttr();
+        Node* parseNode();
+        Node* parseText();
+        Node* parseElement();
+        std::vector<Node*> parseNodes();
+        Parser(std::string str, unsigned i);
+        
 };
 
 #endif
