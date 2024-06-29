@@ -14,9 +14,7 @@ class Text: public NodeType {
         string text;
         Text(string t) {
             text = t;
-        }
-        string print() override {
-            return text;
+            type = text;
         }
 };
 
@@ -27,9 +25,7 @@ class Element: public NodeType {
         Element(string tn, unordered_map<string, string> am) {
             tagname = tn;
             atmap = am;
-        }
-        string print() override {
-            return tagname;
+            type = tagname;
         }
 };
 
@@ -47,4 +43,3 @@ Node* element(vector<Node*> children, string tn, unordered_map<string, string> a
     Node* nd = new Node(children, elem);
     return nd;
 }
-

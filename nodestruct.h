@@ -8,7 +8,7 @@
 
 class NodeType{
     public:
-        virtual std::string print();
+        std::string type;
 };
 
 struct Node {

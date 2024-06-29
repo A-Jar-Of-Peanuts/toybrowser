@@ -3,6 +3,7 @@
 #include "nodestruct.h"
 #include "htmlparser.h"
 
+
 using namespace std;
 void printer(Node* n, int num) {
     if (n == nullptr) {
@@ -12,7 +13,7 @@ void printer(Node* n, int num) {
     for(int i = 0; i<num; i++) {
         cout<<"|";
     }
-    cout<<n->nt.print();
+    cout<<n->nt.type;
 
     for(int i = 0; i<n->children.size(); i++) {
         printer(n->children[i], num+1);
@@ -20,5 +21,6 @@ void printer(Node* n, int num) {
 }
 
 int main() {
-    printer(parse("hello"), 1);
+    printer(parse("wow"), 1);
 }
+

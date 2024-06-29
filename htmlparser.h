@@ -12,7 +12,7 @@ class Parser {
         unsigned pos;
         std::string input;
         char nextChar();
-        bool startsWith(char c);
+        bool startsWith(string c);
         bool eof();
         char consumeChar();
         std::string consumeWhile(bool (*func)(char c));

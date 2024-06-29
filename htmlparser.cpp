@@ -1,5 +1,9 @@
 #include <string>
 #include "nodestruct.h"
+#include <iostream>
+#include <cassert>
+#include <vector>
+#include <unordered_map>
 #include "htmlparser.h"
 
 using namespace std;
@@ -12,8 +16,11 @@ char Parser::nextChar() {
     return input[pos];
 }
 
-bool Parser::startsWith(char c) {
-    return  input[pos] == c;
+bool Parser::startsWith(string c) {
+    if (pos+c.length() > input.length()) {
+        return false;
+    }
+    return  input.substr(pos, c.length()) == c;
 }
 
 char Parser::consumeChar() {
@@ -22,7 +29,7 @@ char Parser::consumeChar() {
 
 string Parser::consumeWhile(bool (*func)(char c)) {
     string res = "";
-    while(func(nextChar())) {
+    while(!eof() && func(nextChar())) {
         res += consumeChar();
     }
     return res;
@@ -43,11 +50,25 @@ Node* Parser::parseNode() {
     } else {
         n = parseText();
     }
+    //error
     return n;
 }
 
 Node* Parser::parseElement() {
-    
+    //return text(vector<Node*>(), "");
+    assert(consumeChar() == '<');
+    string tag_name = parseTagAttr();
+    unordered_map<string, string> attrs = parseAttrs();
+    assert(consumeChar() == '>');
+
+    vector<Node*> children = parseNodes();
+
+    assert(consumeChar() == '<');
+    assert(consumeChar() == '/');
+    assert(parseTagAttr() == tag_name);
+    assert(consumeChar() == '>');
+
+    return element(children, tag_name, attrs);
 }
 
 Node* Parser::parseText() {
@@ -60,7 +81,17 @@ Parser::Parser(string str, unsigned i) {
     pos = i;
 }
 
+vector<Node*> Parser::parseNodes() {
+    vector<Node*> v;
+    while(!eof() || !startsWith("</")) {
+        v.push_back(parseNode());
+    }
+    return v;
+}
+
 Node* parse(string str) {
     Parser p(str, 0);
-    return p.parseNode();
+    return p.parseNodes()[0];
+    // return p.parseNode();
+    // cout<<"hi!";
 }
