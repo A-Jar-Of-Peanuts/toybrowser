@@ -7,6 +7,11 @@
 using namespace std;
 
 class Document: public NodeType {
+    public:
+        string type;
+        Document(string t) {
+            type = t;
+        }
 };
 
 class Text: public NodeType {
@@ -26,10 +31,14 @@ class Element: public NodeType {
             tagname = tn;
             atmap = am;
             type = tagname;
+            for(auto& it : atmap) {
+                type += " " + it.first + ": " + it.second;
+            }
         }
 };
 
 class Comment: public NodeType{
+
 };
 
 Node* text(vector<Node*> children, string t) {
@@ -42,4 +51,9 @@ Node* element(vector<Node*> children, string tn, unordered_map<string, string> a
     Element elem(tn, am);
     Node* nd = new Node(children, elem);
     return nd;
+}
+
+Node document(string t) {
+    Document d(t);
+    Node* nd = new Node(vector<Node*>(), d);
 }

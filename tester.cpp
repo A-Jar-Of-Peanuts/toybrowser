@@ -13,7 +13,7 @@ void printer(Node* n, int num) {
     for(int i = 0; i<num; i++) {
         cout<<"|";
     }
-    cout<<n->nt.type;
+    cout<<n->nt.type<<endl;
 
     for(int i = 0; i<n->children.size(); i++) {
         printer(n->children[i], num+1);
@@ -21,6 +21,6 @@ void printer(Node* n, int num) {
 }
 
 int main() {
-    printer(parse("wow"), 1);
+    printer(parse("<!DOCTYPE html><html class = \"b\" id = \"a\"><head><title>test</title></head><body><p>Hello World</p></body></html>"), 1);
 }
 

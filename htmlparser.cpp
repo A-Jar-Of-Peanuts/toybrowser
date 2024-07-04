@@ -4,6 +4,7 @@
 #include <cassert>
 #include <vector>
 #include <unordered_map>
+#include <utility>
 #include "htmlparser.h"
 
 using namespace std;
@@ -50,25 +51,63 @@ Node* Parser::parseNode() {
     } else {
         n = parseText();
     }
-    //error
     return n;
 }
 
 Node* Parser::parseElement() {
     //return text(vector<Node*>(), "");
-    assert(consumeChar() == '<');
+    //assert(consumeChar() == '<');
+    consumeChar();
     string tag_name = parseTagAttr();
     unordered_map<string, string> attrs = parseAttrs();
-    assert(consumeChar() == '>');
+    consumeChar();
+   // assert(consumeChar() == '>');
 
     vector<Node*> children = parseNodes();
 
-    assert(consumeChar() == '<');
-    assert(consumeChar() == '/');
-    assert(parseTagAttr() == tag_name);
-    assert(consumeChar() == '>');
+    // assert(consumeChar() == '<');
+    // assert(consumeChar() == '/');
+    // assert(parseTagAttr() == tag_name);
+    // assert(consumeChar() == '>');
+
+    consumeChar();
+    consumeChar();
+    parseTagAttr();
+    consumeChar();
 
     return element(children, tag_name, attrs);
+}
+
+unordered_map<string, string> Parser::parseAttrs() {
+    unordered_map<string, string> m;
+    while(true) {
+        consumeWhitespace();
+        if (nextChar() == '>') {
+            break;
+        }
+        pair<string, string> p = parseAttr();
+        m[p.first] = p.second;
+    }
+    return m;
+}
+
+pair<string,string> Parser::parseAttr() {
+    string name = parseTagAttr();
+    // cout<<nextChar()<<endl;
+    // assert(nextChar() == '=');
+    consumeWhitespace();
+    consumeChar();
+    string value = parseAttrVal();
+    return make_pair(name, value);
+}
+
+string Parser::parseAttrVal() {
+    consumeWhitespace();
+    char openQuote = consumeChar();
+    //assert(openQuote == '"' || openQuote == '\'');
+    string val = consumeWhile([](char c)->bool{return c!= '"' && c!= '\'';});
+    consumeChar();
+    return val;
 }
 
 Node* Parser::parseText() {
@@ -83,7 +122,7 @@ Parser::Parser(string str, unsigned i) {
 
 vector<Node*> Parser::parseNodes() {
     vector<Node*> v;
-    while(!eof() || !startsWith("</")) {
+    while(!eof() && !startsWith("</")) {
         v.push_back(parseNode());
     }
     return v;
@@ -92,6 +131,4 @@ vector<Node*> Parser::parseNodes() {
 Node* parse(string str) {
     Parser p(str, 0);
     return p.parseNodes()[0];
-    // return p.parseNode();
-    // cout<<"hi!";
 }
