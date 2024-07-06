@@ -8,9 +8,10 @@ using namespace std;
 
 class Document: public NodeType {
     public:
-        string type;
+        string text;
         Document(string t) {
-            type = t;
+            text = t;
+            type = "DOCTYPE " + text;
         }
 };
 
@@ -38,7 +39,12 @@ class Element: public NodeType {
 };
 
 class Comment: public NodeType{
-
+    public:
+        string text;
+        Comment(string t) {
+            text = t;
+            type = text;
+        }
 };
 
 Node* text(vector<Node*> children, string t) {
@@ -53,7 +59,14 @@ Node* element(vector<Node*> children, string tn, unordered_map<string, string> a
     return nd;
 }
 
-Node document(string t) {
+Node* document(vector<Node*> children, string t) {
     Document d(t);
-    Node* nd = new Node(vector<Node*>(), d);
+    Node* nd = new Node(children, d);
+    return nd;
+}
+
+Node* comment(string t) {
+    Comment c(t);
+    Node* nd = new Node(vector<Node*>(), c);
+    return nd;
 }

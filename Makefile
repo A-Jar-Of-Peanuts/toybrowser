@@ -1,2 +1,2 @@
-main: tester.cpp htmlparser.cpp nodestruct.cpp
-	g++ -std=c++11 tester.cpp nodestruct.cpp htmlparser.cpp -o main
+main: parsers/tester.cpp parsers/htmlparser.cpp parsers/nodestruct.cpp parsers/cssparser.cpp parsers/cssparser.h parsers/selector.cpp parsers/selector.h
+	g++ -std=c++11 parsers/tester.cpp parsers/nodestruct.cpp parsers/htmlparser.cpp parsers/cssparser.cpp parsers/cssparser.h parsers/selector.cpp parsers/selector.h -o main

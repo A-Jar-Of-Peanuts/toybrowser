@@ -7,12 +7,12 @@
 #include <unordered_map>
 #include <utility>
 
-Node* parse(std::string str);
+Node* parseHTML(std::string str);
 
-class Parser {
+class HTMLParser {
     public:
         std::vector<Node*> parseNodes();
-        Parser(std::string str, unsigned i);
+        HTMLParser(std::string str, unsigned i);
 
     private:
         // current position in input 
@@ -23,6 +23,8 @@ class Parser {
         char nextChar();
         // returns true if next characters equals to param
         bool startsWith(std::string c);
+        // startWith case sensitive
+        bool startsWithcs(std::string c);
         // returns true if end of file
         bool eof();
         // returns next character & consumes it
@@ -45,6 +47,10 @@ class Parser {
         Node* parseText();
         // parse a single element, including open tag, contents, closing tag
         Node* parseElement();
+        // parse a single document node
+        Node* parseDoc();
+        // parse a single comment node
+        Node* parseCom();
         
 };
 

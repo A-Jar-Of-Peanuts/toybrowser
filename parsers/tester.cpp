@@ -21,6 +21,7 @@ void printer(Node* n, int num) {
 }
 
 int main() {
-    printer(parse("<!DOCTYPE html><html class = \"b\" id = \"a\"><head><title>test</title></head><body><p>Hello World</p></body></html>"), 1);
+    Node* n = parseHTML("<!doctype html><html ><head><title>test</title></head><body><p  class = \"b\" id = \"a\">Hello World</p></body><!--this is a comment!--></html>");
+    printer(n, 1);
 }
 

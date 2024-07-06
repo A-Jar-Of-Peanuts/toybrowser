@@ -9,26 +9,38 @@
 
 using namespace std;
 
-bool Parser::eof() {
+bool HTMLParser::eof() {
     return pos >= input.size();
 }
 
-char Parser::nextChar() {
+char HTMLParser::nextChar() {
     return input[pos];
 }
 
-bool Parser::startsWith(string c) {
+bool HTMLParser::startsWith(string c) {
     if (pos+c.length() > input.length()) {
         return false;
     }
-    return  input.substr(pos, c.length()) == c;
+    return input.substr(pos, c.length()) == c;
 }
 
-char Parser::consumeChar() {
+bool HTMLParser::startsWithcs(string c) {
+    if (pos+c.length() > input.length()) {
+        return false;
+    }
+    for(int i = 0; i<c.length(); i++) {
+        if (tolower(c[i]) != tolower(input[i+pos])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+char HTMLParser::consumeChar() {
     return input[pos++];
 }
 
-string Parser::consumeWhile(bool (*func)(char c)) {
+string HTMLParser::consumeWhile(bool (*func)(char c)) {
     string res = "";
     while(!eof() && func(nextChar())) {
         res += consumeChar();
@@ -36,17 +48,21 @@ string Parser::consumeWhile(bool (*func)(char c)) {
     return res;
 }
 
-void Parser::consumeWhitespace() {
+void HTMLParser::consumeWhitespace() {
     consumeWhile([](char c)->bool{return c == ' ';});
 }
 
-string Parser::parseTagAttr() {
+string HTMLParser::parseTagAttr() {
     return consumeWhile([](char c)->bool{return isalpha(c) || isdigit(c);});
 }
 
-Node* Parser::parseNode() {
+Node* HTMLParser::parseNode() {
     Node* n;
-    if (nextChar() == '<') {
+    if (startsWithcs("<!--")) {
+        n = parseCom();
+    } else if (startsWithcs("<!DOCTYPE")) {
+        n = parseDoc();
+    } else if (nextChar() == '<') {
         n = parseElement();
     } else {
         n = parseText();
@@ -54,7 +70,32 @@ Node* Parser::parseNode() {
     return n;
 }
 
-Node* Parser::parseElement() {
+Node* HTMLParser::parseCom() {
+    for(int i = 0; i<4; i++) {
+        consumeChar(); 
+    }
+    string t = "";
+    while(!startsWith("-->")) {
+        t += consumeChar();
+    }
+    for(int i = 0; i<3; i++) {
+        consumeChar(); 
+    }
+    return comment(t);
+}
+
+Node* HTMLParser::parseDoc() {
+    for(int i = 0; i<9; i++) {
+        consumeChar();
+    }
+    consumeWhitespace();
+    string t = consumeWhile([](char c)->bool{return c != '>';});
+    consumeChar();
+    vector<Node*> children = parseNodes(); 
+    return document(children, t);
+}
+
+Node* HTMLParser::parseElement() {
     //return text(vector<Node*>(), "");
     //assert(consumeChar() == '<');
     consumeChar();
@@ -78,7 +119,7 @@ Node* Parser::parseElement() {
     return element(children, tag_name, attrs);
 }
 
-unordered_map<string, string> Parser::parseAttrs() {
+unordered_map<string, string> HTMLParser::parseAttrs() {
     unordered_map<string, string> m;
     while(true) {
         consumeWhitespace();
@@ -91,7 +132,7 @@ unordered_map<string, string> Parser::parseAttrs() {
     return m;
 }
 
-pair<string,string> Parser::parseAttr() {
+pair<string,string> HTMLParser::parseAttr() {
     string name = parseTagAttr();
     // cout<<nextChar()<<endl;
     // assert(nextChar() == '=');
@@ -101,7 +142,7 @@ pair<string,string> Parser::parseAttr() {
     return make_pair(name, value);
 }
 
-string Parser::parseAttrVal() {
+string HTMLParser::parseAttrVal() {
     consumeWhitespace();
     char openQuote = consumeChar();
     //assert(openQuote == '"' || openQuote == '\'');
@@ -110,17 +151,17 @@ string Parser::parseAttrVal() {
     return val;
 }
 
-Node* Parser::parseText() {
+Node* HTMLParser::parseText() {
     string t = consumeWhile([](char c)->bool{return c != '<';});
     return text(vector<Node*>(), t);
 }
 
-Parser::Parser(string str, unsigned i) {
+HTMLParser::HTMLParser(string str, unsigned i) {
     input = str;
     pos = i;
 }
 
-vector<Node*> Parser::parseNodes() {
+vector<Node*> HTMLParser::parseNodes() {
     vector<Node*> v;
     while(!eof() && !startsWith("</")) {
         v.push_back(parseNode());
@@ -128,7 +169,7 @@ vector<Node*> Parser::parseNodes() {
     return v;
 }
 
-Node* parse(string str) {
-    Parser p(str, 0);
+Node* parseHTML(string str) {
+    HTMLParser p(str, 0);
     return p.parseNodes()[0];
 }
