@@ -2,6 +2,8 @@
 #include <iostream>
 #include "nodestruct.h"
 #include "htmlparser.h"
+#include "cssparser.h"
+#include "selector.h"
 
 
 using namespace std;
@@ -20,8 +22,25 @@ void printer(Node* n, int num) {
     }
 }
 
+void pr(vector<Rule*> r) {
+    for(int i = 0; i<r.size(); i++) {
+        for(int j = 0; j<r[i]->selectors.size(); j++) {
+            cout<<r[i]->selectors[j]->tagName<<" ,";
+        }
+        for(int j = 0; j<r[i]->declarations.size(); j++) {
+            cout<<r[i]->declarations[j]->name<<" ";
+            cout<<r[i]->declarations[j]->value->toString()<<" ";
+        }
+        cout<<"\n";
+    }
+}
+
 int main() {
+    cout<<"h";
     Node* n = parseHTML("<!doctype html><html ><head><title>test</title></head><body><p  class = \"b\" id = \"a\">Hello World</p></body><!--this is a comment!--></html>");
+    vector<Rule*> r = parseCSS("h1,h2,h3{margin:auto;color:#cc0000;}");
+    //vector<Rule*> r = parseCSS("h1{}");
     printer(n, 1);
+    pr(r);
 }
 
