@@ -134,7 +134,7 @@ Declaration* CSSParser::parseDeclaration() {
 
 vector<Declaration*> CSSParser::parseDeclarations() {
     vector<Declaration*> dec;
-    while (!eof()) {
+    while (!eof() && nextChar()!='}') {
         consumeWhitespace();
         if (nextChar() == '}') break; // End of declarations
         dec.push_back(parseDeclaration());

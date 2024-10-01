@@ -3,3 +3,5 @@ tester.dSYM/
 .vscode
 .DS_Store
 parsers/.vscode
+imgui/
+glfw/

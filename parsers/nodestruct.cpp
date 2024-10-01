@@ -34,9 +34,9 @@ class Element: public NodeType {
             name = "Element";
             tagname = tn;
             atmap = am;
-            type = "tagname: " + tagname;
+            type = "tagname:" + tagname;
             for(auto& it : atmap) {
-                type += " " + it.first + ": " + it.second;
+                type += " " + it.first + ":" + it.second;
             }
         }
 };
@@ -74,3 +74,29 @@ Node* comment(string t) {
     Node* nd = new Node(vector<Node*>(), c);
     return nd;
 }
+
+std::pair<bool, Value*> Node::value(std::string str) {
+    if (properties.find(str)!=properties.end()) {
+        return make_pair(true, properties[str]);
+    } else {
+        return make_pair(false, nullptr);
+    }
+}
+
+string Node::display() {
+    // TODO when display value class has been implemented
+
+    // pair<bool, Value*> p = value("display");
+    // if (p.first) {
+    //     return p.second;
+    // } else {
+    //     return INLINE;
+    // }
+    if (nt.name == "Element") {
+        return INLINE;
+    } else {
+        return NONE;
+    }
+}
+
+std::string display();

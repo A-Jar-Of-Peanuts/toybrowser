@@ -14,6 +14,10 @@ class NodeType{
 };
 
 struct Node {
+    const std::string INLINE = "inline";
+    const std::string BLOCK = "block";
+    const std::string NONE = "none";
+
     std::unordered_map<std::string, Value*> properties;
     std::vector<Node*> children; 
     NodeType nt;
@@ -22,6 +26,9 @@ struct Node {
         children = c;
         nt = n;
     }
+
+    std::pair<bool, Value*> value(std::string str);
+    std::string display();
 };
 
 Node* text(std::vector<Node*> children, std::string t);
