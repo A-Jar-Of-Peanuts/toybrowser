@@ -10,6 +10,7 @@ class Document: public NodeType {
     public:
         string text;
         Document(string t) {
+            name = "Document";
             text = t;
             type = "DOCTYPE " + text;
         }
@@ -19,6 +20,7 @@ class Text: public NodeType {
     public:
         string text;
         Text(string t) {
+            name = "Text";
             text = t;
             type = text;
         }
@@ -29,9 +31,10 @@ class Element: public NodeType {
         string tagname;
         unordered_map<string, string> atmap;
         Element(string tn, unordered_map<string, string> am) {
+            name = "Element";
             tagname = tn;
             atmap = am;
-            type = tagname;
+            type = "tagname: " + tagname;
             for(auto& it : atmap) {
                 type += " " + it.first + ": " + it.second;
             }
@@ -42,6 +45,7 @@ class Comment: public NodeType{
     public:
         string text;
         Comment(string t) {
+            name = "Comment";
             text = t;
             type = text;
         }

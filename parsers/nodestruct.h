@@ -5,14 +5,17 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include "selector.h"
 
 class NodeType{
     public:
+        std::string name;
         std::string type;
 };
 
 struct Node {
-    std::vector<Node*> children;
+    std::unordered_map<std::string, Value*> properties;
+    std::vector<Node*> children; 
     NodeType nt;
 
     Node(std::vector<Node*> c, NodeType n) {

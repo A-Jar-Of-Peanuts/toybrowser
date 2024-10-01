@@ -50,10 +50,3 @@ SimpleSelector::SimpleSelector(string tn, string i, vector<string> cl) {
     id = i; 
     classes = cl; 
 }
-
-
-
-
-
-
-

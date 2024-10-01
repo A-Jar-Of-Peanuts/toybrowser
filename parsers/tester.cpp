@@ -4,6 +4,7 @@
 #include "htmlparser.h"
 #include "cssparser.h"
 #include "selector.h"
+#include "stylenode.h"
 
 
 using namespace std;
@@ -36,11 +37,11 @@ void pr(vector<Rule*> r) {
 }
 
 int main() {
-    cout<<"h";
     Node* n = parseHTML("<!doctype html><html ><head><title>test</title></head><body><p  class = \"b\" id = \"a\">Hello World</p></body><!--this is a comment!--></html>");
     vector<Rule*> r = parseCSS("h1,h2,h3{margin:auto;color:#cc0000;}");
     //vector<Rule*> r = parseCSS("h1{}");
     printer(n, 1);
     pr(r);
+    makeStyle(n, r);
 }
 
