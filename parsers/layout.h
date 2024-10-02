@@ -34,6 +34,7 @@ struct LayoutBox {
     const std::string INLINE = "inline";
     const std::string BLOCK = "block";
     const std::string NONE = "none";
+    const std::string TEXT = "text";
 
     Dimensions dimensions;
     std::vector<LayoutBox*> children;
@@ -43,6 +44,7 @@ struct LayoutBox {
     void layout(Dimensions dim);
     void layoutBlock(Dimensions dim);
     void layoutInline(Dimensions dim);
+    void layoutText(Dimensions dim);
 };
 
 LayoutBox* buildLayoutTree(Node* node);

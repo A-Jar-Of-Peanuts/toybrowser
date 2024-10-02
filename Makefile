@@ -16,6 +16,7 @@ SRC = render/painting.cpp \
       parsers/selector.cpp \
 	  parsers/stylenode.cpp \
 	  parsers/layout.cpp \
+	  examples/fetcher.cpp \
 	  imgui/imgui.cpp \
 	  imgui/imgui_demo.cpp \
 	  imgui/imgui_draw.cpp \
@@ -32,7 +33,8 @@ HEADERS = parsers/cssparser.h \
 	  	parsers/stylenode.h \
 		parsers/htmlparser.h \
 		parsers/selector.h \
-		parsers/layout.h
+		parsers/layout.h \
+		examples/fetcher.h 
 
 # Output executable
 TARGET = main

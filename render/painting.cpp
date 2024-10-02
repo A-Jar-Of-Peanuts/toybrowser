@@ -4,6 +4,7 @@
 #include "../parsers/cssparser.h"
 #include "../parsers/selector.h"
 #include "../parsers/stylenode.h"
+#include "../examples/fetcher.h"
 
 #include <GLFW/glfw3.h> // Include glfw3.h after our OpenGL definitions
 #include "imgui.h"
@@ -53,23 +54,27 @@ void draw(LayoutBox* lb, int r) {
             ImVec2(Pos.x + Size.x, Pos.y + Size.y),
             IM_COL32(get<0>(t), get<1>(t), get<2>(t), 255));
         } 
+    } else if (lb->box->nt.name == "Text") {
+        ImVec2 textPos(Pos.x + Size.x / 2.0f, Pos.y + Size.y / 2.0f);
+        ImVec2 textSize = ImGui::CalcTextSize(lb->box->nt.type.c_str());
+        drawList->AddText(ImVec2(textPos.x - textSize.x / 2.0f, textPos.y - textSize.y / 2.0f), IM_COL32(255, 7, 255, 255), lb->box->nt.type.c_str());
     } else {
         drawList->AddRectFilled(Pos,
-        ImVec2(Pos.x + Size.x, Pos.y + Size.y),
-        IM_COL32(r, r, r, 255));
+            ImVec2(Pos.x + Size.x, Pos.y + Size.y),
+            IM_COL32(r, r, r, 255));
     }
 
-    ImVec2 textPos(Pos.x + Size.x / 2.0f, Pos.y + Size.y / 2.0f);
-    ImVec2 textSize = ImGui::CalcTextSize(lb->box->nt.name.c_str());
-    drawList->AddText(ImVec2(textPos.x - textSize.x / 2.0f, textPos.y - textSize.y / 2.0f), IM_COL32(255, 7, 255, 255), lb->box->nt.name.c_str());
     for(int i = 0; i<lb->children.size(); i++) {
         draw(lb->children[i], r+50+(i*1));
     }
 }
 
 LayoutBox* setup() {
-    Node* n = parseHTML("<!doctype html><html ><head><title>test</title></head><body><p  class = \"b\" id = \"a\">Hello World</p></body><!--this is a comment!--></html>");
-    vector<Rule*> r = parseCSS("title{color:#ffffff; display:inline;}p{color:#cc0000; margin:auto;} ");
+    string html = filetostring("examples/ex1.html");
+    string css = filetostring("examples/ex1.css");
+    cout << html;
+    Node* n = parseHTML(html);
+    vector<Rule*> r = parseCSS(css);
     makeStyle(n, r);
     LayoutBox* root;
     if (n->nt.name == "Document") {

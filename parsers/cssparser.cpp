@@ -79,7 +79,7 @@ SimpleSelector* CSSParser::parseSimpleSelector() {
                 if (validIdentifierChar(c)) {
                     sel->tagName = parseIdentifier();
                 } else {
-                    if (c != '{' && c!=',') {
+                    if (c != '{' && c!=',' && !isspace(c)) {
                         throw runtime_error("Unexpected character while parsing simple selector, got "+string(1,c));
                     } 
                     flag = false;

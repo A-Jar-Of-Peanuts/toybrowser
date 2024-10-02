@@ -17,6 +17,7 @@ struct Node {
     const std::string INLINE = "inline";
     const std::string BLOCK = "block";
     const std::string NONE = "none";
+    const std::string TEXT = "text";
 
     std::unordered_map<std::string, Value*> properties;
     std::vector<Node*> children; 

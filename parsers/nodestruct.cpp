@@ -94,7 +94,9 @@ string Node::display() {
     // }
     if (nt.name == "Element") {
         return INLINE;
-    } else {
+    } else if (nt.name == "Text") {
+        return TEXT;
+    }else {
         return NONE;
     }
 }

@@ -15,6 +15,10 @@ LayoutBox* buildLayoutTree(Node* node) {
     lb->box = node;
     if (dis == node->INLINE) {
         lb->boxType = node->INLINE;
+    } else if (dis == node->TEXT) {
+        lb->boxType = node->TEXT;
+    } else if (dis == node->BLOCK) {
+        lb->boxType = node->BLOCK;
     }
     for (int i = 0; i<node->children.size(); i++) {
         //
@@ -28,12 +32,10 @@ LayoutBox* buildLayoutTree(Node* node) {
                 } else if (dis == node->NONE) {
                     cout <<"whaaa";
 
+                } else if (dis == node->TEXT) {
+                    lb->children.push_back(buildLayoutTree(node->children[i]));
                 }
-            }
-            
-        
-       
-        
+            }  
     }
     return lb; 
 }
@@ -43,10 +45,18 @@ LayoutBox::LayoutBox() {
 }
 
 void LayoutBox::layout(Dimensions dim) {
-    // if (boxType == box->INLINE) {
-    //     layoutInline(dim);
-    // }
-    layoutInline(dim);
+    if (boxType == box->INLINE) {
+        layoutInline(dim);
+    } else if (boxType == box->TEXT) {
+        layoutText(dim);
+    }
+}
+
+void LayoutBox::layoutText(Dimensions dim) {
+    dimensions = dim;
+    if (dimensions.content.height < 100) {
+        dimensions.content.height = 100;
+    }
 }
 void LayoutBox::layoutInline(Dimensions dim) {
     // TODO get margin properties idk lol dgaf
@@ -61,10 +71,10 @@ void LayoutBox::layoutInline(Dimensions dim) {
 
     // int total = width->len + margin_left->len + margin_right->len+border_left->len + border_right->len+
     // padding_left->len + padding_right->len;
-    this->dimensions.margin.left = 5;
-    this->dimensions.margin.right = 5;
-    this->dimensions.margin.top = 5;
-    this->dimensions.margin.bottom = 5;
+    this->dimensions.margin.left = 15;
+    this->dimensions.margin.right = 15;
+    this->dimensions.margin.top = 15;
+    this->dimensions.margin.bottom = 15;
 
     this->dimensions.content.x = dim.content.x + this->dimensions.margin.left;
     this->dimensions.content.y = dim.content.y + dim.content.height + this->dimensions.margin.top;

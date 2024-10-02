@@ -49,7 +49,7 @@ string HTMLParser::consumeWhile(bool (*func)(char c)) {
 }
 
 void HTMLParser::consumeWhitespace() {
-    consumeWhile([](char c)->bool{return c == ' ';});
+    consumeWhile([](char c)->bool{return c == isspace(c);});
 }
 
 string HTMLParser::parseTagAttr() {
@@ -67,6 +67,7 @@ Node* HTMLParser::parseNode() {
     } else {
         n = parseText();
     }
+    consumeWhitespace();
     return n;
 }
 
@@ -96,6 +97,7 @@ Node* HTMLParser::parseDoc() {
 }
 
 Node* HTMLParser::parseElement() {
+    consumeWhitespace();
     //return text(vector<Node*>(), "");
     //assert(consumeChar() == '<');
     consumeChar();
@@ -103,9 +105,9 @@ Node* HTMLParser::parseElement() {
     unordered_map<string, string> attrs = parseAttrs();
     consumeChar();
    // assert(consumeChar() == '>');
-
+    consumeWhitespace();
     vector<Node*> children = parseNodes();
-
+    consumeWhitespace();
     // assert(consumeChar() == '<');
     // assert(consumeChar() == '/');
     // assert(parseTagAttr() == tag_name);
@@ -115,6 +117,7 @@ Node* HTMLParser::parseElement() {
     consumeChar();
     parseTagAttr();
     consumeChar();
+    consumeWhitespace();
 
     return element(children, tag_name, attrs);
 }
@@ -122,7 +125,6 @@ Node* HTMLParser::parseElement() {
 unordered_map<string, string> HTMLParser::parseAttrs() {
     unordered_map<string, string> m;
     while(true) {
-        consumeWhitespace();
         if (nextChar() == '>') {
             break;
         }
@@ -164,7 +166,9 @@ HTMLParser::HTMLParser(string str, unsigned i) {
 vector<Node*> HTMLParser::parseNodes() {
     vector<Node*> v;
     while(!eof() && !startsWith("</")) {
+        consumeWhitespace();
         v.push_back(parseNode());
+        consumeWhitespace();
     }
     return v;
 }
