@@ -58,6 +58,7 @@ string HTMLParser::parseTagAttr() {
 
 Node* HTMLParser::parseNode() {
     Node* n;
+    consumeWhitespace();
     if (startsWithcs("<!--")) {
         n = parseCom();
     } else if (startsWithcs("<!DOCTYPE")) {
@@ -98,33 +99,37 @@ Node* HTMLParser::parseDoc() {
 
 Node* HTMLParser::parseElement() {
     consumeWhitespace();
-    //return text(vector<Node*>(), "");
-    //assert(consumeChar() == '<');
-    consumeChar();
+    consumeChar();  // Skip '<'
     string tag_name = parseTagAttr();
     unordered_map<string, string> attrs = parseAttrs();
-    consumeChar();
-   // assert(consumeChar() == '>');
     consumeWhitespace();
+
+    if (nextChar() == '/') {
+        consumeChar();  // Skip '/'
+        consumeChar();  // Skip '>'
+        consumeWhitespace();
+        return element({}, tag_name, attrs);
+    }
+
+    consumeChar();  // Skip '>'
+    consumeWhitespace();
+
     vector<Node*> children = parseNodes();
     consumeWhitespace();
-    // assert(consumeChar() == '<');
-    // assert(consumeChar() == '/');
-    // assert(parseTagAttr() == tag_name);
-    // assert(consumeChar() == '>');
 
-    consumeChar();
-    consumeChar();
-    parseTagAttr();
-    consumeChar();
+    // Skip "</tag_name>"
+    consumeChar();  // Skip '<'
+    consumeChar();  // Skip '/'
+    parseTagAttr(); // Read tag_name
+    consumeChar();  // Skip '>'
     consumeWhitespace();
-
     return element(children, tag_name, attrs);
 }
 
 unordered_map<string, string> HTMLParser::parseAttrs() {
     unordered_map<string, string> m;
     while(true) {
+        consumeWhitespace();
         if (nextChar() == '>') {
             break;
         }
@@ -135,6 +140,7 @@ unordered_map<string, string> HTMLParser::parseAttrs() {
 }
 
 pair<string,string> HTMLParser::parseAttr() {
+    consumeWhitespace();
     string name = parseTagAttr();
     // cout<<nextChar()<<endl;
     // assert(nextChar() == '=');
