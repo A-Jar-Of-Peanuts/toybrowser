@@ -23,20 +23,19 @@ void glfwErrorCallback(int error, const char* description) {
     std::cerr << "GLFW Error (" << error << "): " << description << std::endl;
 }
 
-// Function to convert a hex string to an RGB tuple
 std::tuple<int, int, int> hexToRGB(std::string hex) {
     int r = 0, g = 0, b = 0;
 
     if (hex[0] == '#' && hex.length() == 7) {
         std::stringstream ss;
-        ss << std::hex << hex.substr(1);  // Ignore the `#` character
+        ss << std::hex << hex.substr(1);  
 
         unsigned int hexValue;
         ss >> hexValue;
 
-        r = (hexValue >> 16) & 0xFF; // Extract the red component
-        g = (hexValue >> 8) & 0xFF;  // Extract the green component
-        b = hexValue & 0xFF;         // Extract the blue component
+        r = (hexValue >> 16) & 0xFF; 
+        g = (hexValue >> 8) & 0xFF;  
+        b = hexValue & 0xFF;         
     }
 
     return std::make_tuple(r, g, b);

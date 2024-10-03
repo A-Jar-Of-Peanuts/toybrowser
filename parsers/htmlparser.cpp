@@ -49,7 +49,7 @@ string HTMLParser::consumeWhile(bool (*func)(char c)) {
 }
 
 void HTMLParser::consumeWhitespace() {
-    consumeWhile([](char c)->bool{return c == isspace(c);});
+    consumeWhile([](char c)->bool{return isspace(c);});
 }
 
 string HTMLParser::parseTagAttr() {
