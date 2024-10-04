@@ -6,7 +6,7 @@
 #include "selector.h"
 #include "stylenode.h"
 
-
+#if false
 using namespace std;
 void printer(Node* n, int num) {
     if (n == nullptr) {
@@ -66,4 +66,4 @@ int main() {
     makeStyle(n, r);
     printer2(n, 1);
 }
-
+#endif
