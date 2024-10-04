@@ -47,8 +47,8 @@ void draw(LayoutBox* lb, int r) {
     ImVec2 Size(lb->dimensions.content.width, lb->dimensions.content.height); 
 
     if (lb->box->nt.name == "Element") {
-        if (lb->box->properties.find("color")!=lb->box->properties.end()) {
-            tuple<int,int,int> t = hexToRGB(lb->box->properties["color"]->toString());
+        if (lb->box->properties.find("background-color")!=lb->box->properties.end()) {
+            tuple<int,int,int> t = hexToRGB(lb->box->properties["background-color"]->toString());
             drawList->AddRectFilled(Pos,
             ImVec2(Pos.x + Size.x, Pos.y + Size.y),
             IM_COL32(get<0>(t), get<1>(t), get<2>(t), 255));
@@ -56,7 +56,7 @@ void draw(LayoutBox* lb, int r) {
     } else if (lb->box->nt.name == "Text") {
         ImVec2 textPos(Pos.x + Size.x / 2.0f, Pos.y + Size.y / 2.0f);
         ImVec2 textSize = ImGui::CalcTextSize(lb->box->nt.type.c_str());
-        drawList->AddText(ImVec2(textPos.x - textSize.x / 2.0f, textPos.y - textSize.y / 2.0f), IM_COL32(255, 7, 255, 255), lb->box->nt.type.c_str());
+        drawList->AddText(ImVec2(textPos.x - textSize.x / 2.0f, textPos.y - textSize.y / 2.0f), IM_COL32(0, 0, 0, 255), lb->box->nt.type.c_str());
     } else {
         drawList->AddRectFilled(Pos,
             ImVec2(Pos.x + Size.x, Pos.y + Size.y),
@@ -71,7 +71,6 @@ void draw(LayoutBox* lb, int r) {
 LayoutBox* setup() {
     string html = filetostring("examples/ex1.html");
     string css = filetostring("examples/ex1.css");
-    cout << html;
     Node* n = parseHTML(html);
     vector<Rule*> r = parseCSS(css);
     makeStyle(n, r);
@@ -81,7 +80,6 @@ LayoutBox* setup() {
     } else {
         root  = buildLayoutTree(n);
     }
-    //LayoutBox* root = buildLayoutTree(n);
     Dimensions dim;
     dim.content.width = 800;
     root->layout(dim);

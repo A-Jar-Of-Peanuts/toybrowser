@@ -6,13 +6,18 @@ p {
     margin: auto;
 } 
 div {
-    color: #66abcd;
+    display:inline;
 }
 
 head {
+    display: none;
     color: #bbbbb2;
 }
 
 title {
     color: #ccccc3;
+}
+
+body {
+    background-color: #8266cd;
 }
