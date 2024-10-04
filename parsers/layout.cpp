@@ -26,6 +26,7 @@ LayoutBox* buildLayoutTree(Node* node) {
             if (d != node->NONE) {
                 if (dis == node->INLINE) {
                     // TODO create anon block or smt idk
+                    
                     lb->children.push_back(buildLayoutTree(node->children[i]));
                 } else if (dis == node->BLOCK) {
                     lb->children.push_back(buildLayoutTree(node->children[i]));
@@ -49,6 +50,8 @@ void LayoutBox::layout(Dimensions dim) {
         layoutInline(dim);
     } else if (boxType == box->TEXT) {
         layoutText(dim);
+    } else if (boxType == box->BLOCK) {
+        layoutBlock(dim);
     }
 }
 
@@ -58,6 +61,34 @@ void LayoutBox::layoutText(Dimensions dim) {
         dimensions.content.height = 100;
     }
 }
+
+void LayoutBox::layoutBlock(Dimensions dim) {
+    this->dimensions.margin.left = 15;
+    this->dimensions.margin.right = 15;
+    this->dimensions.margin.top = 15;
+    this->dimensions.margin.bottom = 15;
+
+    this->dimensions.content.x = dim.content.x + this->dimensions.margin.left;
+    this->dimensions.content.y = dim.content.y + dim.content.height + this->dimensions.margin.top;
+    this->dimensions.content.width = dim.content.width;
+
+    if (dimensions.content.x+dimensions.content.width+dimensions.margin.right>dim.content.width+dim.content.x) {
+        int difference = (dimensions.content.x+dimensions.content.width+dimensions.margin.right)-(dim.content.width+dim.content.x);
+        dimensions.content.width-=difference;
+    } else {
+        dimensions.content.width+=dimensions.margin.right;
+    }
+
+    if (children.size() == 0) {
+        dimensions.content.height = 100;
+    }
+    
+    for(int i = 0; i<children.size(); i++) {
+        children[i]->layout(dimensions);
+        dimensions.content.height+=children[i]->dimensions.marg().height;
+    }
+}
+
 void LayoutBox::layoutInline(Dimensions dim) {
     // TODO get margin properties idk lol dgaf
     // Length* width = new Length(10, "px");

@@ -86,14 +86,13 @@ std::pair<bool, Value*> Node::value(std::string str) {
 string Node::display() {
     // TODO when display value class has been implemented
 
-    // pair<bool, Value*> p = value("display");
-    // if (p.first) {
-    //     return p.second;
-    // } else {
-    //     return INLINE;
-    // }
     if (nt.name == "Element") {
-        return INLINE;
+        pair<bool, Value*> p = value("display");
+        if (p.first) {
+            return p.second->toString();
+        } else {
+            return BLOCK;
+        }
     } else if (nt.name == "Text") {
         return TEXT;
     }else {
