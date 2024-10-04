@@ -16,5 +16,8 @@ Building
 ```bash
 cd build
 cmake ..
+# on linux and mac
 make -j$(nproc)
+# on windows (assumes ur building with mvsc)
+cmake --build . --config Release -- /m
 ```
