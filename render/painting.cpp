@@ -78,7 +78,7 @@ float lenToFloat(const std::string &input)
 
 void draw(LayoutBox *lb, int r, std::unordered_map<std::string, Value *> inherit)
 {
-    auto drawList = ImGui::GetBackgroundDrawList();
+    auto drawList = ImGui::GetWindowDrawList();
 
     ImGuiIO &io = ImGui::GetIO();
     io.FontGlobalScale = 1;
@@ -110,7 +110,7 @@ void draw(LayoutBox *lb, int r, std::unordered_map<std::string, Value *> inherit
     else if (lb->box->nt.name == "Text")
     {
         ImGui::PushFont(font);
-        
+
         ImColor textColor = ImColor(0, 0, 0, 255);
         if (inherit.find("color") != inherit.end())
         {
@@ -191,6 +191,25 @@ void draw(LayoutBox *lb, int r, std::unordered_map<std::string, Value *> inherit
     }
 }
 
+void RenderSearchBarAndButton()
+{
+    // Static variable to hold the search query
+    static char searchQuery[256] = "";
+
+    // Create a text input for the search query
+    ImGui::InputText("##searchbar", searchQuery, IM_ARRAYSIZE(searchQuery), ImGuiInputTextFlags_EnterReturnsTrue);
+
+    // Same line to have the button next to the search bar
+    ImGui::SameLine();
+
+    // Button handling
+    if (ImGui::Button("Enter"))
+    {
+        // TODO: Implement what happens when the button is pressed
+        // For now, just print the search query to the console
+        std::cout << "Search Query: " << searchQuery << std::endl;
+    }
+}
 LayoutBox *setup()
 {
     string html = filetostring("examples/ex1.html");
@@ -230,7 +249,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 
     // Create a windowed mode window and its OpenGL context
-    GLFWwindow *window = glfwCreateWindow(1000, 1000, "YanBrowser", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(500, 500, "YanBrowser", NULL, NULL);
     if (!window)
     {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -241,8 +260,8 @@ int main()
 
     // Initialize ImGui
     ImGui::CreateContext();
-    ImGuiIO &io = ImGui::GetIO();        // (void)io;
-    io.DisplaySize = ImVec2(1000, 1000); // Set display size
+    ImGuiIO &io = ImGui::GetIO();       // (void)io;
+    io.DisplaySize = ImVec2(500, 500); // Set display size
     ImGui::StyleColorsDark();
 
     const GLubyte *renderer = glGetString(GL_RENDERER); // Get renderer string
@@ -262,12 +281,33 @@ int main()
     {
         glfwPollEvents();
 
-        // Start the ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        ImGui::SetNextWindowPos(ImVec2(0, 0));                              // Position at the top-left corner of the outer window
+        ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y)); // Full width and 50px height for the search bar area
+        ImGui::Begin("OuterWindow", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus|ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
+
+        RenderSearchBarAndButton();
+
+        // Ensure the inner window displays its colors correctly without being darkened out
+        ImGui::SetNextWindowPos(ImVec2(0, 50));                                                            // Just below the search bar
+        ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x + 50, ImGui::GetIO().DisplaySize.y - 50)); // Full width, height adjusted for search bar
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));                                    // Remove padding to avoid any background peeking through
+        ImGui::Begin("InnerWindow", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+
+        glClearColor(255, 255, 255, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+
+        // Ensure the draw function is called within the inner window context
         draw(lb, 0, std::unordered_map<std::string, Value *>());
+
+        ImGui::End();         // End "InnerWindow"
+        ImGui::PopStyleVar(); // Reset style to previous state
+
+        ImGui::End(); // End "OuterWindow"
 
         // Rendering
         ImGui::Render();
