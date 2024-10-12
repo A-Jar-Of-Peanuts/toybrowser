@@ -41,12 +41,13 @@ struct LayoutBox {
     std::string boxType;
     Node* box;
     LayoutBox();
-    void layout(Dimensions dim);
-    void layoutBlock(Dimensions dim);
-    void layoutInline(Dimensions dim);
-    void layoutText(Dimensions dim);
+    void layout(Dimensions dim, std::unordered_map<std::string, Value*> inherit);
+    void layoutBlock(Dimensions dim, std::unordered_map<std::string, Value*> inherit);
+    void layoutInline(Dimensions dim, std::unordered_map<std::string, Value*> inherit);
+    void layoutText(Dimensions dim, std::unordered_map<std::string, Value*> inherit);
 };
 
 LayoutBox* buildLayoutTree(Node* node);
+float lenToF(const std::string& input);
 
 #endif

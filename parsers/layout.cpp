@@ -4,8 +4,85 @@
 #include <string>
 #include "nodestruct.h"
 #include "selector.h"
+#include <cmath>
+#include <iostream>
+#include <sstream>
+
 
 using namespace std;
+
+float lenToF(const std::string& input) {
+    std::string digits;
+    std::string letters;
+
+    // Iterate through each character in the input string
+    for (char ch : input) {
+        if (std::isdigit(ch)) { // Check if the character is a digit
+            digits.push_back(ch);
+        } else if (std::isalpha(ch)) { // Check if the character is a letter
+            letters.push_back(ch);
+        }
+    }
+
+    float number = std::stof(digits);
+
+    return number;
+}
+
+float calculateTextHeight(float fontSize, const std::string& text, float maxWidth) {
+    // For Roboto Mono, we assume a more direct relationship between font size and character width
+    float charWidth = fontSize * 0.43f; // Adjust this multiplier based on actual measurements or desired spacing
+    
+    // Line height for Roboto Mono, considering it's a monospace font
+    float lineHeight = fontSize; // Adjusted for better approximation for monospace
+    
+    float totalHeight = 0;
+    std::istringstream wordsStream(text);
+    std::string word;
+    float currentLineWidth = 0;
+
+    while (wordsStream >> word) {
+        // Check for newline characters within words and split accordingly
+        size_t newlinePos = word.find('\n');
+        if (newlinePos != std::string::npos) {
+            // Handle text before the newline
+            std::string beforeNewline = word.substr(0, newlinePos);
+            float beforeNewlineWidth = beforeNewline.length() * charWidth;
+            if (currentLineWidth + beforeNewlineWidth > maxWidth) {
+                totalHeight += lineHeight; // Add height for the current line
+                currentLineWidth = 0; // Reset for a new line
+            }
+            totalHeight += lineHeight; // Add height for the line ending with a newline character
+            currentLineWidth = 0; // Reset for a new line
+
+            // Handle text after the newline as a new word
+            word = word.substr(newlinePos + 1);
+        }
+
+        float wordWidth = word.length() * charWidth;
+        
+        // Check if adding the next word exceeds the max width
+        if (currentLineWidth + wordWidth > maxWidth) {
+            totalHeight += lineHeight; // Add the height of the current line and reset
+            currentLineWidth = 0;
+        }
+        
+        // Account for a space if the current line is not empty
+        if (currentLineWidth > 0) {
+            currentLineWidth += charWidth; // Width of a space in a monospace font
+        }
+        
+        currentLineWidth += wordWidth;
+    }
+    
+    // Add the height of the last line if there's any text left
+    if (currentLineWidth > 0) {
+        totalHeight += lineHeight;
+    }
+    
+    return totalHeight;
+}
+
 
 LayoutBox* buildLayoutTree(Node* node) {
     string dis = node->display();
@@ -45,24 +122,30 @@ LayoutBox::LayoutBox() {
 
 }
 
-void LayoutBox::layout(Dimensions dim) {
+void LayoutBox::layout(Dimensions dim, std::unordered_map<std::string, Value*> inherit) {
+    if (box->properties.find("font-size")!=box->properties.end()) {
+        inherit["font-size"] = box->properties["font-size"];
+    }
     if (boxType == box->INLINE) {
-        layoutInline(dim);
+        layoutInline(dim, inherit);
     } else if (boxType == box->TEXT) {
-        layoutText(dim);
+        layoutText(dim, inherit);
     } else if (boxType == box->BLOCK) {
-        layoutBlock(dim);
+        layoutBlock(dim, inherit);
     }
 }
 
-void LayoutBox::layoutText(Dimensions dim) {
+void LayoutBox::layoutText(Dimensions dim, std::unordered_map<std::string, Value*> inherit) {
     dimensions = dim;
-    if (dimensions.content.height < 100) {
-        dimensions.content.height = 100;
+    if (inherit.find("font-size")!=inherit.end()) {
+        dimensions.content.height = calculateTextHeight(lenToF(inherit["font-size"]->toString()), box->nt.type, dim.content.width);
+
+    } else {
+        dimensions.content.height = calculateTextHeight(12, box->nt.type, dim.content.width);
     }
 }
 
-void LayoutBox::layoutBlock(Dimensions dim) {
+void LayoutBox::layoutBlock(Dimensions dim, std::unordered_map<std::string, Value*> inherit) {
     this->dimensions.margin.left = 15;
     this->dimensions.margin.right = 15;
     this->dimensions.margin.top = 15;
@@ -84,12 +167,12 @@ void LayoutBox::layoutBlock(Dimensions dim) {
     }
     
     for(int i = 0; i<children.size(); i++) {
-        children[i]->layout(dimensions);
+        children[i]->layout(dimensions, inherit);
         dimensions.content.height+=children[i]->dimensions.marg().height;
     }
 }
 
-void LayoutBox::layoutInline(Dimensions dim) {
+void LayoutBox::layoutInline(Dimensions dim, std::unordered_map<std::string, Value*> inherit) {
     // TODO get margin properties idk lol dgaf
     // Length* width = new Length(10, "px");
 
@@ -123,7 +206,7 @@ void LayoutBox::layoutInline(Dimensions dim) {
     }
     
     for(int i = 0; i<children.size(); i++) {
-        children[i]->layout(dimensions);
+        children[i]->layout(dimensions, inherit);
         dimensions.content.height+=children[i]->dimensions.marg().height;
     }
 
