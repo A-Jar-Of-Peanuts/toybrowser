@@ -146,10 +146,10 @@ void LayoutBox::layoutText(Dimensions dim, std::unordered_map<std::string, Value
 }
 
 void LayoutBox::layoutBlock(Dimensions dim, std::unordered_map<std::string, Value*> inherit) {
-    this->dimensions.margin.left = 15;
-    this->dimensions.margin.right = 15;
-    this->dimensions.margin.top = 15;
-    this->dimensions.margin.bottom = 15;
+    this->dimensions.margin.left = 5;
+    this->dimensions.margin.right = 5;
+    this->dimensions.margin.top = 5;
+    this->dimensions.margin.bottom = 5;
 
     this->dimensions.content.x = dim.content.x + this->dimensions.margin.left;
     this->dimensions.content.y = dim.content.y + dim.content.height + this->dimensions.margin.top;

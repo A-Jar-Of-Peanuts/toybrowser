@@ -1,31 +1,25 @@
-body{
+body {
     background-color: #57b7e1;
- }
- 
- p {
-     text-align: center;
-     font-size: 12px; 
- }
- 
- h1 {
-    background-color: #44faaa;
-     text-align: center;
-     font-size: 30px; 
- }
- 
- .ae {
-     text-align: center;
- }
- 
- .entry {
-     margin: auto;
-     width: 300px;
-     height: 100px; 
-     background-color: #bc2d96;
-     text-align: center;
-     padding:20px;
- }
+}
 
- head {
-    display:none;
- }
+p {
+    text-align: center;
+    font-size: 30px;
+}
+
+h1 {
+    background-color: #44faaa;
+    font-size: 30px;
+}
+
+.ae {
+    text-align: center;
+}
+
+.entry {
+    background-color: #bc2d96;
+}
+
+head {
+    display: none;
+}

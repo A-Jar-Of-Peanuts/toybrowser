@@ -26,6 +26,7 @@
 using namespace std;
 
 ImFont *font;
+ImColor bodycolor = IM_COL32(255, 255, 255, 255);
 // Error callback for GLFW
 void glfwErrorCallback(int error, const char *description)
 {
@@ -179,6 +180,14 @@ void draw(LayoutBox *lb, int r, std::unordered_map<std::string, Value *> inherit
     if (lb->box->properties.find("background-color") != lb->box->properties.end())
     {
         inherit["background-color"] = lb->box->properties["background-color"];
+        if (lb->box->nt.name == "Element" && lb->box->nt.type.find("body") != string::npos)
+        {
+            tuple<int, int, int> t = hexToRGB(lb->box->properties["background-color"]->toString());
+            bodycolor = IM_COL32(get<0>(t),
+                                 get<1>(t),
+                                 get<2>(t),
+                                 255);
+        }
     }
     if (lb->box->properties.find("font-size") != lb->box->properties.end())
     {
@@ -210,7 +219,7 @@ void RenderSearchBarAndButton()
         std::cout << "Search Query: " << searchQuery << std::endl;
     }
 }
-LayoutBox *setup()
+LayoutBox *setup(int displayWidth)
 {
     string html = filetostring("examples/ex1.html");
     string css = filetostring("examples/ex1.css");
@@ -227,7 +236,9 @@ LayoutBox *setup()
         root = buildLayoutTree(n);
     }
     Dimensions dim;
-    dim.content.width = 800;
+    dim.content.width = displayWidth-100;
+    dim.content.x = 50;
+    dim.content.y = 50;
     root->layout(dim, std::unordered_map<std::string, Value *>());
     return root;
 }
@@ -236,7 +247,6 @@ int main()
 {
     // Set GLFW error callback
     glfwSetErrorCallback(glfwErrorCallback);
-    LayoutBox *lb = setup();
     // Initialize GLFW
     if (!glfwInit())
     {
@@ -249,7 +259,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 
     // Create a windowed mode window and its OpenGL context
-    GLFWwindow *window = glfwCreateWindow(500, 500, "YanBrowser", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(800, 500, "YanBrowser", NULL, NULL);
     if (!window)
     {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -260,8 +270,8 @@ int main()
 
     // Initialize ImGui
     ImGui::CreateContext();
-    ImGuiIO &io = ImGui::GetIO();       // (void)io;
-    io.DisplaySize = ImVec2(500, 500); // Set display size
+    ImGuiIO &io = ImGui::GetIO();      // (void)io;
+    io.DisplaySize = ImVec2(800, 500); // Set display size
     ImGui::StyleColorsDark();
 
     const GLubyte *renderer = glGetString(GL_RENDERER); // Get renderer string
@@ -285,29 +295,28 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::SetNextWindowPos(ImVec2(0, 0));                              // Position at the top-left corner of the outer window
-        ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y)); // Full width and 50px height for the search bar area
-        ImGui::Begin("OuterWindow", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus|ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
-
+        ImGui::SetNextWindowPos(ImVec2(0, 0));                                                        
+        ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y)); 
+        ImGui::Begin("OuterWindow", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
+        auto drawList = ImGui::GetWindowDrawList();
+        drawList->AddRectFilled(ImVec2(0, 0), ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y), IM_COL32(255, 255, 255, 255)); 
         RenderSearchBarAndButton();
 
-        // Ensure the inner window displays its colors correctly without being darkened out
-        ImGui::SetNextWindowPos(ImVec2(0, 50));                                                            // Just below the search bar
-        ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x + 50, ImGui::GetIO().DisplaySize.y - 50)); // Full width, height adjusted for search bar
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));                                    // Remove padding to avoid any background peeking through
-        ImGui::Begin("InnerWindow", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+        ImGui::SetNextWindowPos(ImVec2(50, 50));                                                                 
+        ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x - 100, ImGui::GetIO().DisplaySize.y - 100)); 
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));                                          
+        ImGui::Begin("InnerWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
-        glClearColor(255, 255, 255, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
+        auto drawList2 = ImGui::GetWindowDrawList();
+        drawList2->AddRectFilled(ImVec2(0, 0), ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y), bodycolor); 
 
-
-        // Ensure the draw function is called within the inner window context
+        LayoutBox *lb = setup(ImGui::GetIO().DisplaySize.x);
         draw(lb, 0, std::unordered_map<std::string, Value *>());
 
-        ImGui::End();         // End "InnerWindow"
-        ImGui::PopStyleVar(); // Reset style to previous state
+        ImGui::End();         
+        ImGui::PopStyleVar(); 
 
-        ImGui::End(); // End "OuterWindow"
+        ImGui::End(); 
 
         // Rendering
         ImGui::Render();
