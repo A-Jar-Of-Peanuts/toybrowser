@@ -36,5 +36,8 @@ Node* text(std::vector<Node*> children, std::string t);
 Node* element(std::vector<Node*> children, std::string tn, std::unordered_map<std::string, std::string> am);
 Node* document(std::vector<Node*> children, std::string t);
 Node* comment(std::string t);
+Node* link(std::unordered_map<std::string, std::string> am);
+Node* meta(std::unordered_map<std::string, std::string> am);
+Node* script(std::string t);
 
 #endif

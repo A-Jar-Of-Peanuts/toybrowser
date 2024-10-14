@@ -1,0 +1,28 @@
+head, link, meta, script, style, title {
+    display:none;
+}
+
+body {
+display: block;
+margin: 8px;
+}
+
+p {
+    display:block;
+    font-size: 12px;
+}
+
+h1 {
+    display:block;
+    font-size: 25px;
+}
+
+h2 {
+    display:block;
+    font-size: 20px;
+}
+
+h3 {
+    display:block;
+    font-size: 15px;
+}

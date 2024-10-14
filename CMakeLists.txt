@@ -30,6 +30,11 @@ CPMAddPackage(
   GIT_TAG v1.89.2  # pick a version
 )
 
+CPMAddPackage(
+  NAME libcurl
+  GIT_REPOSITORY https://github.com/curl/curl.git
+  GIT_TAG curl-7_79_1 # Specify the version of libcurl you want
+)
 
 # Source files
 set(SOURCES
@@ -48,20 +53,42 @@ set(SOURCES
     imgui/imgui_tables.cpp
     imgui/backends/imgui_impl_glfw.cpp
     imgui/backends/imgui_impl_opengl3.cpp
+    network/curlstuff.cpp
+)
+
+# Header files
+set(HEADERS
+    render/painting.h
+    parsers/nodestruct.h
+    parsers/htmlparser.h
+    parsers/cssparser.h
+    parsers/selector.h
+    parsers/stylenode.h
+    parsers/layout.h
+    examples/fetcher.h
+    imgui/imgui.h
+    imgui/imconfig.h
+    imgui/imgui_internal.h
+    imgui/imstb_rectpack.h
+    imgui/imstb_textedit.h
+    imgui/imstb_truetype.h
+    imgui/backends/imgui_impl_glfw.h
+    imgui/backends/imgui_impl_opengl3.h
+    network/curlstuff.h
 )
 
 # Add an executable based on the source files
-add_executable(ToyBrowser ${SOURCES})
+add_executable(ToyBrowser ${SOURCES} ${HEADERS})
 
-target_link_libraries(ToyBrowser glfw)
+target_link_libraries(ToyBrowser glfw libcurl)
 
 # Platform-specific libraries
 if(APPLE)
-    target_link_libraries(ToyBrowser glfw ${GLFW_LIBRARIES} "-framework OpenGL" "-ldl")
+    target_link_libraries(ToyBrowser glfw ${GLFW_LIBRARIES} ${CURL_LIBRARIES} "-framework OpenGL" "-ldl")
 elseif(WIN32)
-    target_link_libraries(ToyBrowser glfw ${GLFW_LIBRARIES} opengl32)
+    target_link_libraries(ToyBrowser glfw ${GLFW_LIBRARIES} ${CURL_LIBRARIES} opengl32)
 elseif(UNIX AND NOT APPLE) # Linux
     find_package(OpenGL REQUIRED)
     find_package(X11 REQUIRED)
-    target_link_libraries(ToyBrowser glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${X11_LIBRARIES} dl pthread)
+    target_link_libraries(ToyBrowser glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${X11_LIBRARIES} ${CURL_LIBRARIES} dl pthread)
 endif()

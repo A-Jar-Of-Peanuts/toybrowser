@@ -151,6 +151,26 @@ void LayoutBox::layoutBlock(Dimensions dim, std::unordered_map<std::string, Valu
     this->dimensions.margin.top = 5;
     this->dimensions.margin.bottom = 5;
 
+    if (box->properties.find("margin-left")!=box->properties.end()) {
+        this->dimensions.margin.left = lenToF(box->properties["margin-left"]->toString());
+    }
+    if (box->properties.find("margin-right")!=box->properties.end()) {
+        this->dimensions.margin.right = lenToF(box->properties["margin-right"]->toString());
+    }   
+    if (box->properties.find("margin-top")!=box->properties.end()) {
+        this->dimensions.margin.top = lenToF(box->properties["margin-top"]->toString());
+    }
+    if (box->properties.find("margin-bottom")!=box->properties.end()) {
+        this->dimensions.margin.bottom = lenToF(box->properties["margin-bottom"]->toString());
+    }
+    if (box->properties.find("margin")!=box->properties.end()) {
+        float margin = lenToF(box->properties["margin"]->toString());
+        this->dimensions.margin.left = margin;
+        this->dimensions.margin.right = margin;
+        this->dimensions.margin.top = margin;
+        this->dimensions.margin.bottom = margin;
+    }
+
     this->dimensions.content.x = dim.content.x + this->dimensions.margin.left;
     this->dimensions.content.y = dim.content.y + dim.content.height + this->dimensions.margin.top;
     this->dimensions.content.width = dim.content.width;
@@ -174,17 +194,6 @@ void LayoutBox::layoutBlock(Dimensions dim, std::unordered_map<std::string, Valu
 
 void LayoutBox::layoutInline(Dimensions dim, std::unordered_map<std::string, Value*> inherit) {
     // TODO get margin properties idk lol dgaf
-    // Length* width = new Length(10, "px");
-
-    // Length* margin_left = new Length(0, "px");
-    // Length* margin_right = new Length(0, "px");
-    // Length* border_left = new Length(0, "px");
-    // Length* border_right = new Length(0, "px");
-    // Length* padding_left = new Length(0, "px");
-    // Length* padding_right = new Length(0, "px");
-
-    // int total = width->len + margin_left->len + margin_right->len+border_left->len + border_right->len+
-    // padding_left->len + padding_right->len;
     this->dimensions.margin.left = 15;
     this->dimensions.margin.right = 15;
     this->dimensions.margin.top = 15;
@@ -219,10 +228,6 @@ Rect Dimensions::marg() {
     r.width = content.width+margin.left+margin.right;
     r.height = content.height+margin.bottom+margin.top;
     return r;
-    // content.x+=margin.left;
-    //content.y+=margin.top;
-    // content.width-=(margin.left+margin.right);
-    //content.height-=(margin.top+margin.bottom);
 }
 
 Dimensions::Dimensions() {

@@ -51,6 +51,12 @@ class HTMLParser {
         Node* parseDoc();
         // parse a single comment node
         Node* parseCom();
+        // parse a single link node
+        Node* parseLink();
+        // parse a single meta node
+        Node* parseMeta();
+        // parse a single script node and does nothing lol
+        Node* parseScript();
         
 };
 

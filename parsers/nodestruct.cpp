@@ -51,6 +51,42 @@ class Comment: public NodeType{
         }
 };
 
+class Link: public NodeType{
+    public:
+        unordered_map<string, string> atmap;
+        Link(unordered_map<string, string> am) {
+            name = "Link";
+            atmap = am;
+            type = "";
+            for(auto& it : atmap) {
+                type += " " + it.first + ":" + it.second;
+            }
+        }
+};
+
+class Meta: public NodeType {
+    public:
+        unordered_map<string, string> atmap;
+        Meta(unordered_map<string, string> am) {
+            name = "Meta";
+            atmap = am;
+            type = "";
+            for(auto& it : atmap) {
+                type += " " + it.first + ":" + it.second;
+            }
+        }
+};
+
+class Script: public NodeType {
+    public:
+        string text;
+        Script(string t) {
+            name = "Script";
+            text = t;
+            type = text;
+        }
+};
+
 Node* text(vector<Node*> children, string t) {
     Text tx(t);
     Node* nd = new Node(children, tx);
@@ -72,6 +108,24 @@ Node* document(vector<Node*> children, string t) {
 Node* comment(string t) {
     Comment c(t);
     Node* nd = new Node(vector<Node*>(), c);
+    return nd;
+}
+
+Node* link(unordered_map<string, string> am) {
+    Link l(am);
+    Node* nd = new Node(vector<Node*>(), l);
+    return nd;
+}
+
+Node* meta(unordered_map<string, string> am) {
+    Meta m(am);
+    Node* nd = new Node(vector<Node*>(), m);
+    return nd;
+}
+
+Node* script(string t) {
+    Script s(t);
+    Node* nd = new Node(vector<Node*>(), s);
     return nd;
 }
 

@@ -1,4 +1,5 @@
 #include <GLFW/glfw3.h> // Include glfw3.h after our OpenGL definitions
+#include "painting.h"
 
 #include "../examples/fetcher.h"
 #include "../parsers/cssparser.h"
@@ -7,6 +8,7 @@
 #include "../parsers/nodestruct.h"
 #include "../parsers/selector.h"
 #include "../parsers/stylenode.h"
+#include "../network/curlstuff.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "imgui.h"
@@ -22,11 +24,23 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <cmath>
+#include <future>
 
 using namespace std;
 
+// Global variables
+float OUTERWINDOWWIDTH = 800;
+float OUTERWINDOWHEIGHT = 800;
+float INNERWINDOWX = 50;
+float INNERWINDOWY = 50;
+float INNERWINDOWWIDTH = 700;
+float INNERWINDOWHEIGHT = 700;
+
 ImFont *font;
 ImColor bodycolor = IM_COL32(255, 255, 255, 255);
+LayoutBox* lb;
+string urlcurrent = "";
 // Error callback for GLFW
 void glfwErrorCallback(int error, const char *description)
 {
@@ -77,7 +91,7 @@ float lenToFloat(const std::string &input)
     return number;
 }
 
-void draw(LayoutBox *lb, int r, std::unordered_map<std::string, Value *> inherit)
+void draw(LayoutBox *lb, int r, std::unordered_map<std::string, Value *> inherit, float ScrollX, float ScrollY)
 {
     auto drawList = ImGui::GetWindowDrawList();
 
@@ -88,7 +102,7 @@ void draw(LayoutBox *lb, int r, std::unordered_map<std::string, Value *> inherit
         io.FontGlobalScale = lenToFloat(inherit["font-size"]->toString());
     }
 
-    ImVec2 Pos(lb->dimensions.content.x, lb->dimensions.content.y);
+    ImVec2 Pos(lb->dimensions.content.x-ScrollX, lb->dimensions.content.y-ScrollY);
     ImVec2 Size(lb->dimensions.content.width, lb->dimensions.content.height);
 
     if (lb->box->nt.name == "Element")
@@ -196,7 +210,7 @@ void draw(LayoutBox *lb, int r, std::unordered_map<std::string, Value *> inherit
 
     for (int i = 0; i < lb->children.size(); i++)
     {
-        draw(lb->children[i], r + 50 + (i * 1), inherit);
+        draw(lb->children[i], r + 50 + (i * 1), inherit, ScrollX, ScrollY);
     }
 }
 
@@ -214,16 +228,63 @@ void RenderSearchBarAndButton()
     // Button handling
     if (ImGui::Button("Enter"))
     {
-        // TODO: Implement what happens when the button is pressed
-        // For now, just print the search query to the console
         std::cout << "Search Query: " << searchQuery << std::endl;
+        urlcurrent = searchQuery;
+        future<string> htmlfuture = GetHtmlContent(searchQuery);
+        string html = htmlfuture.get();
+        //std::cout<< "html: " << html << std::endl;
+        lb = setup(html);
     }
 }
-LayoutBox *setup(int displayWidth)
+
+std::future<std::string> getCSS(Node *i) {
+    // Check if the current node is a Link element with a stylesheet
+    if (i->nt.name == "Link" && i->nt.type.find("stylesheet") != std::string::npos) {
+        std::string link = i->nt.type;
+        link = link.substr(link.find("href:") + 5);  // Extract the href link
+        link = link.substr(0, link.find(" "));       // Extract the actual link URL
+
+        // Launch async task to get the CSS content
+        return std::async(std::launch::async, [link]() {
+            cout << urlcurrent+link;
+            return GetHtmlContent(urlcurrent + link).get();  // Fetch CSS asynchronously
+        });
+    }
+
+    // If no CSS is found, recursively search the children asynchronously
+    if (!i->children.empty()) {
+        std::vector<std::future<std::string>> futures;
+        for (int j = 0; j < i->children.size(); j++) {
+            futures.push_back(getCSS(i->children[j]));
+        }
+
+        // Wait for each child future to complete and return the first non-empty result
+        for (auto& future : futures) {
+            std::string css = future.get();
+            if (!css.empty()) {
+                return std::async(std::launch::async, [css]() {
+                    return css;  // Return the first found CSS
+                });
+            }
+        }
+    }
+
+    // Return an empty string if no CSS is found
+    return std::async(std::launch::async, []() {
+        return std::string("");
+    });
+}
+
+LayoutBox *setup(string html)
 {
-    string html = filetostring("examples/ex1.html");
-    string css = filetostring("examples/ex1.css");
+    // html = filetostring("examples/ex1.html");
+    string css = filetostring("examples/default.css");
     Node *n = parseHTML(html);
+
+    future<string> futurecss = getCSS(n);
+
+    css = css+ futurecss.get();
+    cout << css << "what";
     vector<Rule *> r = parseCSS(css);
     makeStyle(n, r);
     LayoutBox *root;
@@ -236,9 +297,9 @@ LayoutBox *setup(int displayWidth)
         root = buildLayoutTree(n);
     }
     Dimensions dim;
-    dim.content.width = displayWidth-100;
-    dim.content.x = 50;
-    dim.content.y = 50;
+    dim.content.width = INNERWINDOWWIDTH;
+    dim.content.x = INNERWINDOWX;
+    dim.content.y = INNERWINDOWY;
     root->layout(dim, std::unordered_map<std::string, Value *>());
     return root;
 }
@@ -259,7 +320,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 
     // Create a windowed mode window and its OpenGL context
-    GLFWwindow *window = glfwCreateWindow(800, 500, "YanBrowser", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(OUTERWINDOWWIDTH, OUTERWINDOWHEIGHT, "YanBrowser", NULL, NULL);
     if (!window)
     {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -271,7 +332,7 @@ int main()
     // Initialize ImGui
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();      // (void)io;
-    io.DisplaySize = ImVec2(800, 500); // Set display size
+    io.DisplaySize = ImVec2(OUTERWINDOWWIDTH, OUTERWINDOWHEIGHT); // Set display size
     ImGui::StyleColorsDark();
 
     const GLubyte *renderer = glGetString(GL_RENDERER); // Get renderer string
@@ -285,6 +346,7 @@ int main()
     ImGui_ImplOpenGL3_Init("#version 120"); // Use a compatible GLSL version for OpenGL 2.1
 
     font = io.Fonts->AddFontFromFileTTF("assets/Roboto_Mono/RobotoMono-VariableFont_wght.ttf", 12);
+    lb = setup("<html></html>");
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -296,23 +358,29 @@ int main()
         ImGui::NewFrame();
 
         ImGui::SetNextWindowPos(ImVec2(0, 0));                                                        
-        ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y)); 
+        ImGui::SetNextWindowSize(ImVec2(OUTERWINDOWWIDTH, OUTERWINDOWHEIGHT)); 
         ImGui::Begin("OuterWindow", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
         auto drawList = ImGui::GetWindowDrawList();
-        drawList->AddRectFilled(ImVec2(0, 0), ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y), IM_COL32(255, 255, 255, 255)); 
+        drawList->AddRectFilled(ImVec2(0, 0), ImVec2(OUTERWINDOWWIDTH, OUTERWINDOWHEIGHT), IM_COL32(255, 255, 255, 255)); 
         RenderSearchBarAndButton();
 
-        ImGui::SetNextWindowPos(ImVec2(50, 50));                                                                 
-        ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x - 100, ImGui::GetIO().DisplaySize.y - 100)); 
+        ImGui::SetNextWindowPos(ImVec2(INNERWINDOWX, INNERWINDOWY));                                                                 
+        ImGui::SetNextWindowSize(ImVec2(INNERWINDOWWIDTH, INNERWINDOWHEIGHT)); 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));                                          
-        ImGui::Begin("InnerWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+        ImGui::Begin("InnerWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
+        float ScrollX = ImGui::GetScrollX();
+        float ScrollY = ImGui::GetScrollY();
+
+        ImVec2 contentSize = ImVec2(std::max(INNERWINDOWWIDTH, (float)lb->dimensions.content.width), std::max(INNERWINDOWHEIGHT, (float)lb->dimensions.content.height));
+        ImGui::BeginChild("ScrollableRegion", contentSize, true, ImGuiWindowFlags_HorizontalScrollbar);
         auto drawList2 = ImGui::GetWindowDrawList();
-        drawList2->AddRectFilled(ImVec2(0, 0), ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y), bodycolor); 
+        
+        drawList2->AddRectFilled(ImVec2(INNERWINDOWX, INNERWINDOWY), ImVec2(contentSize.x+INNERWINDOWX, contentSize.y+INNERWINDOWY), bodycolor); 
 
-        LayoutBox *lb = setup(ImGui::GetIO().DisplaySize.x);
-        draw(lb, 0, std::unordered_map<std::string, Value *>());
+        draw(lb, 0, std::unordered_map<std::string, Value *>(), ScrollX, ScrollY);
 
+        ImGui::EndChild();
         ImGui::End();         
         ImGui::PopStyleVar(); 
 

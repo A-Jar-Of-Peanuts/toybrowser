@@ -23,9 +23,10 @@ SRC = render/painting.cpp \
 	  imgui/imgui_widgets.cpp \
 	  imgui/imgui_tables.cpp \
 	  imgui/backends/imgui_impl_glfw.cpp \
-	  imgui/backends/imgui_impl_opengl3.cpp
+	  imgui/backends/imgui_impl_opengl3.cpp \
+	  network/curlstuff.cpp
 
-LIBS = -framework OpenGL -ldl -lglfw3
+LIBS = -framework OpenGL -ldl -lglfw3 -lcurl
 
 # Header files
 HEADERS = parsers/cssparser.h \
@@ -34,7 +35,8 @@ HEADERS = parsers/cssparser.h \
 		parsers/htmlparser.h \
 		parsers/selector.h \
 		parsers/layout.h \
-		examples/fetcher.h 
+		examples/fetcher.h \
+		network/curlstuff.h
 
 # Output executable
 TARGET = main
@@ -43,7 +45,7 @@ TARGET = main
 all: $(TARGET)
 
 $(TARGET): $(SRC) $(HEADERS)
-	$(CXX) $(CXXFLAGS) $(SRC) -o $(TARGET) $(GLFW_LDFLAGS) -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
+	$(CXX) $(CXXFLAGS) $(SRC) -o $(TARGET) $(GLFW_LDFLAGS) -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -lcurl
 
 # Clean target
 clean:
