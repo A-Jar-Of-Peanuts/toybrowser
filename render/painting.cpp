@@ -205,7 +205,7 @@ void draw(LayoutBox *lb, int r, std::unordered_map<std::string, Value *> inherit
     if (lb->box->properties.find("background-color") != lb->box->properties.end())
     {
         inherit["background-color"] = lb->box->properties["background-color"];
-        if (lb->box->nt.name == "Element" && lb->box->nt.type.find("body") != string::npos)
+        if (lb->box->nt.name == "Element" && lb->box->nt.type.find("tagname:body") != string::npos)
         {
             tuple<int, int, int> t = hexToRGB(lb->box->properties["background-color"]->toString());
             bodycolor = IM_COL32(get<0>(t),

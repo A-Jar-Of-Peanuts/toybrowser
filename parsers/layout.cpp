@@ -151,6 +151,13 @@ void LayoutBox::layoutBlock(Dimensions dim, std::unordered_map<std::string, Valu
     this->dimensions.margin.top = 5;
     this->dimensions.margin.bottom = 5;
 
+    if (box->properties.find("margin")!=box->properties.end()) {
+        float margin = lenToF(box->properties["margin"]->toString());
+        this->dimensions.margin.left = margin;
+        this->dimensions.margin.right = margin;
+        this->dimensions.margin.top = margin;
+        this->dimensions.margin.bottom = margin;
+    }
     if (box->properties.find("margin-left")!=box->properties.end()) {
         this->dimensions.margin.left = lenToF(box->properties["margin-left"]->toString());
     }
@@ -163,13 +170,47 @@ void LayoutBox::layoutBlock(Dimensions dim, std::unordered_map<std::string, Valu
     if (box->properties.find("margin-bottom")!=box->properties.end()) {
         this->dimensions.margin.bottom = lenToF(box->properties["margin-bottom"]->toString());
     }
-    if (box->properties.find("margin")!=box->properties.end()) {
-        float margin = lenToF(box->properties["margin"]->toString());
-        this->dimensions.margin.left = margin;
-        this->dimensions.margin.right = margin;
-        this->dimensions.margin.top = margin;
-        this->dimensions.margin.bottom = margin;
+
+    if (box->properties.find("padding")!=box->properties.end()) {
+        float padding = lenToF(box->properties["padding"]->toString());
+        this->dimensions.padding.left = padding;
+        this->dimensions.padding.right = padding;
+        this->dimensions.padding.top = padding;
+        this->dimensions.padding.bottom = padding;
     }
+    if (box->properties.find("padding-left")!=box->properties.end()) {
+        this->dimensions.padding.left = lenToF(box->properties["padding-left"]->toString());
+    }
+    if (box->properties.find("padding-right")!=box->properties.end()) {
+        this->dimensions.padding.right = lenToF(box->properties["padding-right"]->toString());
+    }
+    if (box->properties.find("padding-top")!=box->properties.end()) {
+        this->dimensions.padding.top = lenToF(box->properties["padding-top"]->toString());
+    }
+    if (box->properties.find("padding-bottom")!=box->properties.end()) {
+        this->dimensions.padding.bottom = lenToF(box->properties["padding-bottom"]->toString());
+    }
+
+    if(box->properties.find("border")!=box->properties.end()) {
+        float border = lenToF(box->properties["border"]->toString());
+        this->dimensions.border.left = border;
+        this->dimensions.border.right = border;
+        this->dimensions.border.top = border;
+        this->dimensions.border.bottom = border;
+    }
+    if (box->properties.find("border-left")!=box->properties.end()) {
+        this->dimensions.border.left = lenToF(box->properties["border-left"]->toString());
+    }
+    if (box->properties.find("border-right")!=box->properties.end()) {
+        this->dimensions.border.right = lenToF(box->properties["border-right"]->toString());
+    }
+    if (box->properties.find("border-top")!=box->properties.end()) {
+        this->dimensions.border.top = lenToF(box->properties["border-top"]->toString());
+    }
+    if (box->properties.find("border-bottom")!=box->properties.end()) {
+        this->dimensions.border.bottom = lenToF(box->properties["border-bottom"]->toString());
+    }
+    
 
     this->dimensions.content.x = dim.content.x + this->dimensions.margin.left;
     this->dimensions.content.y = dim.content.y + dim.content.height + this->dimensions.margin.top;
@@ -179,7 +220,7 @@ void LayoutBox::layoutBlock(Dimensions dim, std::unordered_map<std::string, Valu
         int difference = (dimensions.content.x+dimensions.content.width+dimensions.margin.right)-(dim.content.width+dim.content.x);
         dimensions.content.width-=difference;
     } else {
-        dimensions.content.width+=dimensions.margin.right;
+        dimensions.content.width-=dimensions.margin.right;
     }
 
     if (children.size() == 0) {
@@ -224,7 +265,7 @@ void LayoutBox::layoutInline(Dimensions dim, std::unordered_map<std::string, Val
 Rect Dimensions::marg() {
     Rect r;
     r.x = content.x+margin.left;
-    r.y = content.y +margin.top;
+    r.y = content.y+margin.top;
     r.width = content.width+margin.left+margin.right;
     r.height = content.height+margin.bottom+margin.top;
     return r;
