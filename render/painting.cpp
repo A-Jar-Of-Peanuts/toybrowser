@@ -37,10 +37,12 @@ float INNERWINDOWY = 50;
 float INNERWINDOWWIDTH = 700;
 float INNERWINDOWHEIGHT = 700;
 
-ImFont *font;
 ImColor bodycolor = IM_COL32(255, 255, 255, 255);
-LayoutBox* lb;
+LayoutBox *lb;
 string urlcurrent = "";
+unordered_map<float, ImFont *> fonts;
+bool reloading = false;
+
 // Error callback for GLFW
 void glfwErrorCallback(int error, const char *description)
 {
@@ -85,8 +87,8 @@ float lenToFloat(const std::string &input)
         }
     }
 
-    // returns the float value of the digits divided by the original default font size (12)
-    float number = std::stof(digits) / 12;
+    // returns the float value of the digits
+    float number = std::stof(digits);
 
     return number;
 }
@@ -96,13 +98,23 @@ void draw(LayoutBox *lb, int r, std::unordered_map<std::string, Value *> inherit
     auto drawList = ImGui::GetWindowDrawList();
 
     ImGuiIO &io = ImGui::GetIO();
-    io.FontGlobalScale = 1;
     if (inherit.find("font-size") != inherit.end())
     {
-        io.FontGlobalScale = lenToFloat(inherit["font-size"]->toString());
+        if (fonts.find(lenToF(inherit["font-size"]->toString())) != fonts.end())
+        {
+            ImGui::PushFont(fonts[lenToF(inherit["font-size"]->toString())]);
+        }
+        else
+        {
+            ImGui::PushFont(fonts[12]);
+        }
+    }
+    else
+    {
+        ImGui::PushFont(fonts[12]);
     }
 
-    ImVec2 Pos(lb->dimensions.content.x-ScrollX, lb->dimensions.content.y-ScrollY);
+    ImVec2 Pos(lb->dimensions.content.x - ScrollX, lb->dimensions.content.y - ScrollY);
     ImVec2 Size(lb->dimensions.content.width, lb->dimensions.content.height);
 
     if (lb->box->nt.name == "Element")
@@ -124,7 +136,6 @@ void draw(LayoutBox *lb, int r, std::unordered_map<std::string, Value *> inherit
     }
     else if (lb->box->nt.name == "Text")
     {
-        ImGui::PushFont(font);
 
         ImColor textColor = ImColor(0, 0, 0, 255);
         if (inherit.find("color") != inherit.end())
@@ -177,8 +188,6 @@ void draw(LayoutBox *lb, int r, std::unordered_map<std::string, Value *> inherit
             ImVec2 textSize = ImGui::CalcTextSize(currentLine.c_str());
             drawList->AddText(ImVec2(textPos.x - textSize.x / 2.0f, textPos.y), textColor, currentLine.c_str());
         }
-
-        ImGui::PopFont();
     }
     else
     {
@@ -212,10 +221,12 @@ void draw(LayoutBox *lb, int r, std::unordered_map<std::string, Value *> inherit
     {
         draw(lb->children[i], r + 50 + (i * 1), inherit, ScrollX, ScrollY);
     }
+    ImGui::PopFont();
 }
 
 void RenderSearchBarAndButton()
 {
+    ImGui::PushFont(fonts[12]);
     // Static variable to hold the search query
     static char searchQuery[256] = "";
 
@@ -232,59 +243,82 @@ void RenderSearchBarAndButton()
         urlcurrent = searchQuery;
         future<string> htmlfuture = GetHtmlContent(searchQuery);
         string html = htmlfuture.get();
-        //std::cout<< "html: " << html << std::endl;
+        // std::cout<< "html: " << html << std::endl;
         lb = setup(html);
     }
+    ImGui::PopFont();
 }
 
-std::future<std::string> getCSS(Node *i) {
+std::future<std::string> getCSS(Node *i)
+{
     // Check if the current node is a Link element with a stylesheet
-    if (i->nt.name == "Link" && i->nt.type.find("stylesheet") != std::string::npos) {
+    if (i->nt.name == "Link" && i->nt.type.find("stylesheet") != std::string::npos)
+    {
         std::string link = i->nt.type;
-        link = link.substr(link.find("href:") + 5);  // Extract the href link
-        link = link.substr(0, link.find(" "));       // Extract the actual link URL
+        link = link.substr(link.find("href:") + 5); // Extract the href link
+        link = link.substr(0, link.find(" "));      // Extract the actual link URL
 
         // Launch async task to get the CSS content
-        return std::async(std::launch::async, [link]() {
-            cout << urlcurrent+link;
-            return GetHtmlContent(urlcurrent + link).get();  // Fetch CSS asynchronously
-        });
+        return std::async(std::launch::async, [link]()
+                          {
+                              cout << urlcurrent + "/" + link << endl;
+                              return GetHtmlContent(urlcurrent + link).get(); // Fetch CSS asynchronously
+                          });
     }
 
     // If no CSS is found, recursively search the children asynchronously
-    if (!i->children.empty()) {
+    if (!i->children.empty())
+    {
         std::vector<std::future<std::string>> futures;
-        for (int j = 0; j < i->children.size(); j++) {
+        for (int j = 0; j < i->children.size(); j++)
+        {
             futures.push_back(getCSS(i->children[j]));
         }
 
         // Wait for each child future to complete and return the first non-empty result
-        for (auto& future : futures) {
+        for (auto &future : futures)
+        {
             std::string css = future.get();
-            if (!css.empty()) {
-                return std::async(std::launch::async, [css]() {
-                    return css;  // Return the first found CSS
-                });
+            if (!css.empty())
+            {
+                return std::async(std::launch::async, [css]()
+                                  {
+                                      return css; // Return the first found CSS
+                                  });
             }
         }
     }
 
     // Return an empty string if no CSS is found
-    return std::async(std::launch::async, []() {
-        return std::string("");
-    });
+    return std::async(std::launch::async, []()
+                      { return std::string(""); });
+}
+
+void loadFonts(Node *i)
+{
+    if (i->properties.find("font-size") != i->properties.end())
+    {
+        float size = lenToFloat(i->properties["font-size"]->toString());
+        ImFont *f = ImGui::GetIO().Fonts->AddFontFromFileTTF("assets/Roboto_Mono/RobotoMono-VariableFont_wght.ttf", size);
+        // cout << size << endl;
+        fonts[size] = f;
+    }
+    for (int j = 0; j < i->children.size(); j++)
+    {
+        loadFonts(i->children[j]);
+    }
 }
 
 LayoutBox *setup(string html)
 {
+    reloading = true;
     // html = filetostring("examples/ex1.html");
     string css = filetostring("examples/default.css");
     Node *n = parseHTML(html);
 
     future<string> futurecss = getCSS(n);
 
-    css = css+ futurecss.get();
-    cout << css << "what";
+    css = css + futurecss.get();
     vector<Rule *> r = parseCSS(css);
     makeStyle(n, r);
     LayoutBox *root;
@@ -301,6 +335,8 @@ LayoutBox *setup(string html)
     dim.content.x = INNERWINDOWX;
     dim.content.y = INNERWINDOWY;
     root->layout(dim, std::unordered_map<std::string, Value *>());
+
+    bodycolor = IM_COL32(255, 255, 255, 255);
     return root;
 }
 
@@ -331,7 +367,7 @@ int main()
 
     // Initialize ImGui
     ImGui::CreateContext();
-    ImGuiIO &io = ImGui::GetIO();      // (void)io;
+    ImGuiIO &io = ImGui::GetIO();                                 // (void)io;
     io.DisplaySize = ImVec2(OUTERWINDOWWIDTH, OUTERWINDOWHEIGHT); // Set display size
     ImGui::StyleColorsDark();
 
@@ -345,54 +381,68 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 120"); // Use a compatible GLSL version for OpenGL 2.1
 
-    font = io.Fonts->AddFontFromFileTTF("assets/Roboto_Mono/RobotoMono-VariableFont_wght.ttf", 12);
+    fonts[12] = io.Fonts->AddFontFromFileTTF("assets/Roboto_Mono/RobotoMono-VariableFont_wght.ttf", 12);
     lb = setup("<html></html>");
 
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
-        glfwPollEvents();
+        if (!reloading) // checks if browser is reloading new url
+        {
+            glfwPollEvents();
 
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
 
-        ImGui::SetNextWindowPos(ImVec2(0, 0));                                                        
-        ImGui::SetNextWindowSize(ImVec2(OUTERWINDOWWIDTH, OUTERWINDOWHEIGHT)); 
-        ImGui::Begin("OuterWindow", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
-        auto drawList = ImGui::GetWindowDrawList();
-        drawList->AddRectFilled(ImVec2(0, 0), ImVec2(OUTERWINDOWWIDTH, OUTERWINDOWHEIGHT), IM_COL32(255, 255, 255, 255)); 
-        RenderSearchBarAndButton();
+            ImGui::SetNextWindowPos(ImVec2(0, 0));
+            ImGui::SetNextWindowSize(ImVec2(OUTERWINDOWWIDTH, OUTERWINDOWHEIGHT));
+            ImGui::Begin("OuterWindow", nullptr, ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
+            auto drawList = ImGui::GetWindowDrawList();
+            drawList->AddRectFilled(ImVec2(0, 0), ImVec2(OUTERWINDOWWIDTH, OUTERWINDOWHEIGHT), IM_COL32(255, 255, 255, 255));
+            RenderSearchBarAndButton();
 
-        ImGui::SetNextWindowPos(ImVec2(INNERWINDOWX, INNERWINDOWY));                                                                 
-        ImGui::SetNextWindowSize(ImVec2(INNERWINDOWWIDTH, INNERWINDOWHEIGHT)); 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));                                          
-        ImGui::Begin("InnerWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+            ImGui::SetNextWindowPos(ImVec2(INNERWINDOWX, INNERWINDOWY));
+            ImGui::SetNextWindowSize(ImVec2(INNERWINDOWWIDTH, INNERWINDOWHEIGHT));
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+            ImGui::Begin("InnerWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
-        float ScrollX = ImGui::GetScrollX();
-        float ScrollY = ImGui::GetScrollY();
+            float ScrollX = ImGui::GetScrollX();
+            float ScrollY = ImGui::GetScrollY();
 
-        ImVec2 contentSize = ImVec2(std::max(INNERWINDOWWIDTH, (float)lb->dimensions.content.width), std::max(INNERWINDOWHEIGHT, (float)lb->dimensions.content.height));
-        ImGui::BeginChild("ScrollableRegion", contentSize, true, ImGuiWindowFlags_HorizontalScrollbar);
-        auto drawList2 = ImGui::GetWindowDrawList();
-        
-        drawList2->AddRectFilled(ImVec2(INNERWINDOWX, INNERWINDOWY), ImVec2(contentSize.x+INNERWINDOWX, contentSize.y+INNERWINDOWY), bodycolor); 
+            ImVec2 contentSize = ImVec2(std::max(INNERWINDOWWIDTH, (float)lb->dimensions.content.width), std::max(INNERWINDOWHEIGHT, (float)lb->dimensions.content.height));
+            ImGui::BeginChild("ScrollableRegion", contentSize, true, ImGuiWindowFlags_HorizontalScrollbar);
+            auto drawList2 = ImGui::GetWindowDrawList();
 
-        draw(lb, 0, std::unordered_map<std::string, Value *>(), ScrollX, ScrollY);
+            drawList2->AddRectFilled(ImVec2(INNERWINDOWX, INNERWINDOWY), ImVec2(contentSize.x + INNERWINDOWX, contentSize.y + INNERWINDOWY), bodycolor);
 
-        ImGui::EndChild();
-        ImGui::End();         
-        ImGui::PopStyleVar(); 
+            draw(lb, 0, std::unordered_map<std::string, Value *>(), ScrollX, ScrollY);
 
-        ImGui::End(); 
+            ImGui::EndChild();
+            ImGui::End();
+            ImGui::PopStyleVar();
 
-        // Rendering
-        ImGui::Render();
-        glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            ImGui::End();
+            ImGui::EndFrame();
 
-        glfwSwapBuffers(window);
+            // Rendering
+            ImGui::Render();
+            glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+            glfwSwapBuffers(window);
+        }
+        else
+        {
+            // reloads fonts needed for new url
+            fonts[12] = io.Fonts->AddFontFromFileTTF("assets/Roboto_Mono/RobotoMono-VariableFont_wght.ttf", 12);
+            loadFonts(lb->box);
+            io.Fonts->Build();
+            ImGui_ImplOpenGL3_DestroyFontsTexture();
+            ImGui_ImplOpenGL3_CreateFontsTexture();
+            reloading = false;
+        }
     }
 
     // Cleanup
