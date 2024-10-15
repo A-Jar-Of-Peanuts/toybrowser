@@ -9,9 +9,11 @@
 #include "../parsers/selector.h"
 #include "../parsers/stylenode.h"
 #include "../network/curlstuff.h"
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
-#include "imgui.h"
+
+#include "../build/_deps/imgui-src/backends/imgui_impl_glfw.h"
+#include "../build/_deps/imgui-src/backends/imgui_impl_opengl3.h"
+#include "../build/_deps/imgui-src/imgui.h"
+
 #ifdef _WIN32
 #include <GL/gl.h>
 #elif defined(__APPLE__)

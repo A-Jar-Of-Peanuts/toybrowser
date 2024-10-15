@@ -5,7 +5,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <future>
-#include <../parsers/layout.h>
+#include "../parsers/layout.h"
 
 std::tuple<int, int, int> hexToRGB(unsigned int hexValue);
 float lenToFloat(const std::string &input);

@@ -8,7 +8,7 @@ project(ToyBrowserProject)
 set(CMAKE_CXX_STANDARD 11)
 
 # Include directories
-include_directories(. imgui imgui/examples/libs/glfw/include /usr/local/include)
+include_directories(. build/_deps/imgui-src build/_deps/imgui-src/examples/libs/glfw/include /usr/local/include)
 
 # Include CPM.cmake
 include(cmake/CPM.cmake)
@@ -27,7 +27,7 @@ CPMAddPackage(
 CPMAddPackage(
   NAME imgui
   GIT_REPOSITORY https://github.com/ocornut/imgui.git
-  GIT_TAG v1.89.2  # pick a version
+  GIT_TAG v1.91.3  # pick a version
 )
 
 CPMAddPackage(
@@ -46,13 +46,13 @@ set(SOURCES
     parsers/stylenode.cpp
     parsers/layout.cpp
     examples/fetcher.cpp
-    imgui/imgui.cpp
-    imgui/imgui_demo.cpp
-    imgui/imgui_draw.cpp
-    imgui/imgui_widgets.cpp
-    imgui/imgui_tables.cpp
-    imgui/backends/imgui_impl_glfw.cpp
-    imgui/backends/imgui_impl_opengl3.cpp
+    build/_deps/imgui-src/imgui.cpp
+    build/_deps/imgui-src/imgui_demo.cpp
+    build/_deps/imgui-src/imgui_draw.cpp
+    build/_deps/imgui-src/imgui_widgets.cpp
+    build/_deps/imgui-src/imgui_tables.cpp
+    build/_deps/imgui-src/backends/imgui_impl_glfw.cpp
+    build/_deps/imgui-src/backends/imgui_impl_opengl3.cpp
     network/curlstuff.cpp
 )
 
@@ -66,14 +66,14 @@ set(HEADERS
     parsers/stylenode.h
     parsers/layout.h
     examples/fetcher.h
-    imgui/imgui.h
-    imgui/imconfig.h
-    imgui/imgui_internal.h
-    imgui/imstb_rectpack.h
-    imgui/imstb_textedit.h
-    imgui/imstb_truetype.h
-    imgui/backends/imgui_impl_glfw.h
-    imgui/backends/imgui_impl_opengl3.h
+    build/_deps/imgui-src/imgui.h
+    build/_deps/imgui-src/imconfig.h
+    build/_deps/imgui-src/imgui_internal.h
+    build/_deps/imgui-src/imstb_rectpack.h
+    build/_deps/imgui-src/imstb_textedit.h
+    build/_deps/imgui-src/imstb_truetype.h
+    build/_deps/imgui-src/backends/imgui_impl_glfw.h
+    build/_deps/imgui-src/backends/imgui_impl_opengl3.h
     network/curlstuff.h
 )
 
